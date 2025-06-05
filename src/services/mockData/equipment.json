@@ -1,0 +1,167 @@
+[
+  {
+    "id": "1",
+    "name": "Treadmill Pro X1",
+    "category": "Cardio",
+    "purchaseDate": "2022-01-15",
+    "lastMaintenance": "2023-05-20",
+    "nextMaintenance": "2023-08-20",
+    "status": "operational",
+    "location": "Cardio Zone A",
+    "notes": "High-usage equipment. Monitor belt wear regularly."
+  },
+  {
+    "id": "2",
+    "name": "Elliptical Elite 3000",
+    "category": "Cardio",
+    "purchaseDate": "2022-03-22",
+    "lastMaintenance": "2023-06-10",
+    "nextMaintenance": "2023-09-10",
+    "status": "operational",
+    "location": "Cardio Zone A",
+    "notes": "Popular machine. Schedule maintenance during off-peak hours."
+  },
+  {
+    "id": "3",
+    "name": "Stationary Bike Spin Master",
+    "category": "Cardio",
+    "purchaseDate": "2022-02-10",
+    "lastMaintenance": "2023-04-15",
+    "nextMaintenance": "2023-07-15",
+    "status": "maintenance",
+    "location": "Spin Room",
+    "notes": "Chain needs adjustment. Scheduled for this weekend."
+  },
+  {
+    "id": "4",
+    "name": "Leg Press Machine 2000",
+    "category": "Strength",
+    "purchaseDate": "2021-11-08",
+    "lastMaintenance": "2023-05-30",
+    "nextMaintenance": "2023-08-30",
+    "status": "operational",
+    "location": "Strength Zone B",
+    "notes": "Heavy-duty machine. Check weight plate alignment."
+  },
+  {
+    "id": "5",
+    "name": "Chest Press Deluxe",
+    "category": "Strength",
+    "purchaseDate": "2022-01-20",
+    "lastMaintenance": "2023-06-05",
+    "nextMaintenance": "2023-09-05",
+    "status": "operational",
+    "location": "Strength Zone A",
+    "notes": "Recently serviced. Running smoothly."
+  },
+  {
+    "id": "6",
+    "name": "Cable Crossover System",
+    "category": "Strength",
+    "purchaseDate": "2021-12-15",
+    "lastMaintenance": "2023-03-20",
+    "nextMaintenance": "2023-06-20",
+    "status": "broken",
+    "location": "Strength Zone C",
+    "notes": "Cable snapped. Replacement parts ordered."
+  },
+  {
+    "id": "7",
+    "name": "Olympic Barbell Set",
+    "category": "Free Weights",
+    "purchaseDate": "2021-10-05",
+    "lastMaintenance": "2023-04-10",
+    "nextMaintenance": "2023-07-10",
+    "status": "operational",
+    "location": "Free Weight Area",
+    "notes": "Check for bent bars and damaged collars weekly."
+  },
+  {
+    "id": "8",
+    "name": "Dumbbell Rack Complete",
+    "category": "Free Weights",
+    "purchaseDate": "2021-09-18",
+    "lastMaintenance": "2023-05-15",
+    "nextMaintenance": "2023-08-15",
+    "status": "operational",
+    "location": "Free Weight Area",
+    "notes": "Some weights need re-racking. Member education needed."
+  },
+  {
+    "id": "9",
+    "name": "Adjustable Bench Set",
+    "category": "Free Weights",
+    "purchaseDate": "2022-04-12",
+    "lastMaintenance": "2023-06-01",
+    "nextMaintenance": "2023-09-01",
+    "status": "operational",
+    "location": "Free Weight Area",
+    "notes": "High quality benches. Minimal maintenance required."
+  },
+  {
+    "id": "10",
+    "name": "Battle Ropes Heavy Duty",
+    "category": "Functional",
+    "purchaseDate": "2022-05-20",
+    "lastMaintenance": "2023-05-25",
+    "nextMaintenance": "2023-08-25",
+    "status": "operational",
+    "location": "Functional Training Zone",
+    "notes": "Inspect for fraying. Very popular for HIIT classes."
+  },
+  {
+    "id": "11",
+    "name": "TRX Suspension Trainer Set",
+    "category": "Functional",
+    "purchaseDate": "2022-03-15",
+    "lastMaintenance": "2023-04-20",
+    "nextMaintenance": "2023-07-20",
+    "status": "operational",
+    "location": "Functional Training Zone",
+    "notes": "Check anchor points and straps for wear."
+  },
+  {
+    "id": "12",
+    "name": "Kettlebell Collection",
+    "category": "Functional",
+    "purchaseDate": "2021-11-30",
+    "lastMaintenance": "2023-06-08",
+    "nextMaintenance": "2023-09-08",
+    "status": "maintenance",
+    "location": "Functional Training Zone",
+    "notes": "Several handles need grip replacement. Order rubber grips."
+  },
+  {
+    "id": "13",
+    "name": "Rowing Machine Elite",
+    "category": "Cardio",
+    "purchaseDate": "2022-06-10",
+    "lastMaintenance": "2023-05-12",
+    "nextMaintenance": "2023-08-12",
+    "status": "operational",
+    "location": "Cardio Zone B",
+    "notes": "Low-impact alternative. Monitor for chain lubrication."
+  },
+  {
+    "id": "14",
+    "name": "Smith Machine Professional",
+    "category": "Strength",
+    "purchaseDate": "2021-08-25",
+    "lastMaintenance": "2023-04-05",
+    "nextMaintenance": "2023-07-05",
+    "status": "operational",
+    "location": "Strength Zone A",
+    "notes": "Safety bars checked. Guide rails smooth operation."
+  },
+  {
+    "id": "15",
+    "name": "Lat Pulldown Station",
+    "category": "Strength",
+    "purchaseDate": "2022-02-28",
+    "lastMaintenance": "2023-06-15",
+    "nextMaintenance": "2023-09-15",
+    "status": "operational",
+    "location": "Strength Zone B",
+    "notes": "Cable and pulley system recently serviced."
+  }
+]
