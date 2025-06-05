@@ -1,49 +1,164 @@
-import checkInData from '../mockData/checkIns.json';
+// Check-in service using ApperClient for database operations
+const TABLE_NAME = 'check_in';
 
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+// All fields available in the check_in table
+const ALL_FIELDS = [
+  'Id', 'Name', 'Tags', 'Owner', 'CreatedOn', 'CreatedBy', 'ModifiedOn', 'ModifiedBy',
+  'timestamp', 'method', 'type', 'member_id'
+];
 
-let checkIns = [...checkInData];
+// Only updateable fields (excluding System and ReadOnly fields)
+const UPDATEABLE_FIELDS = [
+  'Name', 'timestamp', 'method', 'type', 'member_id'
+];
 
-export const getAll = async () => {
-  await delay(250);
-  return [...checkIns].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+// Initialize ApperClient
+const getApperClient = () => {
+  const { ApperClient } = window.ApperSDK;
+  return new ApperClient({
+    apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+    apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+  });
 };
 
-export const getById = async (id) => {
-  await delay(150);
-  const checkIn = checkIns.find(c => c.id === id);
-  return checkIn ? { ...checkIn } : null;
+export const getAll = async () => {
+  try {
+    const apperClient = getApperClient();
+    const params = {
+      fields: ALL_FIELDS,
+      orderBy: [
+        {
+          fieldName: "timestamp",
+          SortType: "DESC"
+        }
+      ]
+    };
+    
+    const response = await apperClient.fetchRecords(TABLE_NAME, params);
+    
+    if (!response || !response.data || response.data.length === 0) {
+      return [];
+    }
+    
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching check-ins:", error);
+    throw error;
+  }
+};
+
+export const getById = async (recordId) => {
+  try {
+    const apperClient = getApperClient();
+    const params = {
+      fields: ALL_FIELDS
+    };
+    
+    const response = await apperClient.getRecordById(TABLE_NAME, recordId, params);
+    
+    if (!response || !response.data) {
+      return null;
+    }
+    
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching check-in with ID ${recordId}:`, error);
+    return null;
+  }
 };
 
 export const create = async (checkInData) => {
-  await delay(300);
-  const newCheckIn = {
-    ...checkInData,
-    id: Date.now().toString(),
-    timestamp: checkInData.timestamp || new Date().toISOString()
-  };
-  checkIns.push(newCheckIn);
-  return { ...newCheckIn };
+  try {
+    const apperClient = getApperClient();
+    
+    // Filter data to only include updateable fields
+    const filteredData = {};
+    UPDATEABLE_FIELDS.forEach(field => {
+      if (checkInData[field] !== undefined) {
+        filteredData[field] = checkInData[field];
+      }
+    });
+    
+    // Ensure timestamp is in proper DateTime format
+    if (filteredData.timestamp) {
+      filteredData.timestamp = new Date(filteredData.timestamp).toISOString();
+    }
+    
+    const params = {
+      records: [filteredData]
+    };
+    
+    const response = await apperClient.createRecord(TABLE_NAME, params);
+    
+    if (response && response.success && response.results && response.results.length > 0) {
+      const successfulResult = response.results.find(result => result.success);
+      if (successfulResult) {
+        return successfulResult.data;
+      }
+    }
+    
+    throw new Error("Failed to create check-in");
+  } catch (error) {
+    console.error("Error creating check-in:", error);
+    throw error;
+  }
 };
 
 export const update = async (id, checkInData) => {
-  await delay(280);
-  const index = checkIns.findIndex(c => c.id === id);
-  if (index === -1) {
-    throw new Error('Check-in not found');
+  try {
+    const apperClient = getApperClient();
+    
+    // Filter data to only include updateable fields
+    const filteredData = { Id: id };
+    UPDATEABLE_FIELDS.forEach(field => {
+      if (checkInData[field] !== undefined) {
+        filteredData[field] = checkInData[field];
+      }
+    });
+    
+    // Ensure timestamp is in proper DateTime format
+    if (filteredData.timestamp) {
+      filteredData.timestamp = new Date(filteredData.timestamp).toISOString();
+    }
+    
+    const params = {
+      records: [filteredData]
+    };
+    
+    const response = await apperClient.updateRecord(TABLE_NAME, params);
+    
+    if (response && response.success && response.results && response.results.length > 0) {
+      const successfulResult = response.results.find(result => result.success);
+      if (successfulResult) {
+        return successfulResult.data;
+      }
+    }
+    
+    throw new Error("Failed to update check-in");
+  } catch (error) {
+    console.error("Error updating check-in:", error);
+    throw error;
   }
-  checkIns[index] = { ...checkIns[index], ...checkInData };
-  return { ...checkIns[index] };
 };
 
 export const delete_ = async (id) => {
-  await delay(200);
-  const index = checkIns.findIndex(c => c.id === id);
-  if (index === -1) {
-    throw new Error('Check-in not found');
+  try {
+    const apperClient = getApperClient();
+    const params = {
+      RecordIds: [id]
+    };
+    
+    const response = await apperClient.deleteRecord(TABLE_NAME, params);
+    
+    if (response && response.success) {
+      return true;
+    }
+    
+    throw new Error("Failed to delete check-in");
+  } catch (error) {
+    console.error("Error deleting check-in:", error);
+throw error;
   }
-  const deleted = checkIns.splice(index, 1)[0];
-  return { ...deleted };
 };
 
-export const delete = delete_;
+export { delete_ as delete };

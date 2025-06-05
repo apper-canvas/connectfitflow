@@ -1,51 +1,155 @@
-import memberData from '../mockData/members.json';
+// Member service using ApperClient for database operations
+const TABLE_NAME = 'member';
 
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+// All fields available in the member table
+const ALL_FIELDS = [
+  'Id', 'Name', 'Tags', 'Owner', 'CreatedOn', 'CreatedBy', 'ModifiedOn', 'ModifiedBy',
+  'first_name', 'last_name', 'email', 'phone', 'membership_type', 'status', 'join_date', 'notes'
+];
 
-let members = [...memberData];
+// Only updateable fields (excluding System and ReadOnly fields)
+const UPDATEABLE_FIELDS = [
+  'Name', 'first_name', 'last_name', 'email', 'phone', 'membership_type', 'status', 'join_date', 'notes'
+];
 
-export const getAll = async () => {
-  await delay(300);
-  return [...members];
+// Initialize ApperClient
+const getApperClient = () => {
+  const { ApperClient } = window.ApperSDK;
+  return new ApperClient({
+    apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+    apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+  });
 };
 
-export const getById = async (id) => {
-  await delay(200);
-  const member = members.find(m => m.id === id);
-  return member ? { ...member } : null;
+export const getAll = async () => {
+  try {
+    const apperClient = getApperClient();
+    const params = {
+      fields: ALL_FIELDS,
+      orderBy: [
+        {
+          fieldName: "CreatedOn",
+          SortType: "DESC"
+        }
+      ]
+    };
+    
+    const response = await apperClient.fetchRecords(TABLE_NAME, params);
+    
+    if (!response || !response.data || response.data.length === 0) {
+      return [];
+    }
+    
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching members:", error);
+    throw error;
+  }
+};
+
+export const getById = async (recordId) => {
+  try {
+    const apperClient = getApperClient();
+    const params = {
+      fields: ALL_FIELDS
+    };
+    
+    const response = await apperClient.getRecordById(TABLE_NAME, recordId, params);
+    
+    if (!response || !response.data) {
+      return null;
+    }
+    
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching member with ID ${recordId}:`, error);
+    return null;
+  }
 };
 
 export const create = async (memberData) => {
-  await delay(400);
-  const newMember = {
-    ...memberData,
-    id: Date.now().toString(),
-    joinDate: memberData.joinDate || new Date().toISOString().split('T')[0],
-    emergencyContact: memberData.emergencyContact || {}
-  };
-  members.push(newMember);
-  return { ...newMember };
+  try {
+    const apperClient = getApperClient();
+    
+    // Filter data to only include updateable fields
+    const filteredData = {};
+    UPDATEABLE_FIELDS.forEach(field => {
+      if (memberData[field] !== undefined) {
+        filteredData[field] = memberData[field];
+      }
+    });
+    
+    const params = {
+      records: [filteredData]
+    };
+    
+    const response = await apperClient.createRecord(TABLE_NAME, params);
+    
+    if (response && response.success && response.results && response.results.length > 0) {
+      const successfulResult = response.results.find(result => result.success);
+      if (successfulResult) {
+        return successfulResult.data;
+      }
+    }
+    
+    throw new Error("Failed to create member");
+  } catch (error) {
+    console.error("Error creating member:", error);
+    throw error;
+  }
 };
 
 export const update = async (id, memberData) => {
-  await delay(350);
-  const index = members.findIndex(m => m.id === id);
-  if (index === -1) {
-    throw new Error('Member not found');
+  try {
+    const apperClient = getApperClient();
+    
+    // Filter data to only include updateable fields
+    const filteredData = { Id: id };
+    UPDATEABLE_FIELDS.forEach(field => {
+      if (memberData[field] !== undefined) {
+        filteredData[field] = memberData[field];
+      }
+    });
+    
+    const params = {
+      records: [filteredData]
+    };
+    
+    const response = await apperClient.updateRecord(TABLE_NAME, params);
+    
+    if (response && response.success && response.results && response.results.length > 0) {
+      const successfulResult = response.results.find(result => result.success);
+      if (successfulResult) {
+        return successfulResult.data;
+      }
+    }
+    
+    throw new Error("Failed to update member");
+  } catch (error) {
+    console.error("Error updating member:", error);
+    throw error;
   }
-  members[index] = { ...members[index], ...memberData };
-  return { ...members[index] };
 };
 
 export const delete_ = async (id) => {
-  await delay(250);
-  const index = members.findIndex(m => m.id === id);
-  if (index === -1) {
-    throw new Error('Member not found');
+  try {
+    const apperClient = getApperClient();
+    const params = {
+      RecordIds: [id]
+    };
+    
+    const response = await apperClient.deleteRecord(TABLE_NAME, params);
+    
+    if (response && response.success) {
+      return true;
+    }
+    
+    throw new Error("Failed to delete member");
+  } catch (error) {
+    console.error("Error deleting member:", error);
+    throw error;
   }
-  const deleted = members.splice(index, 1)[0];
-  return { ...deleted };
 };
 
 // Alias for delete (since delete is a reserved keyword)
-export const delete = delete_;
+export { delete_ as deleteMember };

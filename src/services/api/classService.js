@@ -1,49 +1,158 @@
-import classData from '../mockData/classes.json';
+// Class service using ApperClient for database operations
+const TABLE_NAME = 'class';
 
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+// All fields available in the class table
+const ALL_FIELDS = [
+  'Id', 'Name', 'Tags', 'Owner', 'CreatedOn', 'CreatedBy', 'ModifiedOn', 'ModifiedBy',
+  'instructor', 'day_of_week', 'start_time', 'duration', 'capacity', 'enrolled', 'room', 'description'
+];
 
-let classes = [...classData];
+// Only updateable fields (excluding System and ReadOnly fields)
+const UPDATEABLE_FIELDS = [
+  'Name', 'instructor', 'day_of_week', 'start_time', 'duration', 'capacity', 'enrolled', 'room', 'description'
+];
 
-export const getAll = async () => {
-  await delay(320);
-  return [...classes];
+// Initialize ApperClient
+const getApperClient = () => {
+  const { ApperClient } = window.ApperSDK;
+  return new ApperClient({
+    apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+    apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+  });
 };
 
-export const getById = async (id) => {
-  await delay(180);
-  const classItem = classes.find(c => c.id === id);
-  return classItem ? { ...classItem } : null;
+export const getAll = async () => {
+  try {
+    const apperClient = getApperClient();
+    const params = {
+      fields: ALL_FIELDS,
+      orderBy: [
+        {
+          fieldName: "day_of_week",
+          SortType: "ASC"
+        },
+        {
+          fieldName: "start_time",
+          SortType: "ASC"
+        }
+      ]
+    };
+    
+    const response = await apperClient.fetchRecords(TABLE_NAME, params);
+    
+    if (!response || !response.data || response.data.length === 0) {
+      return [];
+    }
+    
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching classes:", error);
+    throw error;
+  }
+};
+
+export const getById = async (recordId) => {
+  try {
+    const apperClient = getApperClient();
+    const params = {
+      fields: ALL_FIELDS
+    };
+    
+    const response = await apperClient.getRecordById(TABLE_NAME, recordId, params);
+    
+    if (!response || !response.data) {
+      return null;
+    }
+    
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching class with ID ${recordId}:`, error);
+    return null;
+  }
 };
 
 export const create = async (classData) => {
-  await delay(400);
-  const newClass = {
-    ...classData,
-    id: Date.now().toString(),
-    enrolled: 0
-  };
-  classes.push(newClass);
-  return { ...newClass };
+  try {
+    const apperClient = getApperClient();
+    
+    // Filter data to only include updateable fields
+    const filteredData = {};
+    UPDATEABLE_FIELDS.forEach(field => {
+      if (classData[field] !== undefined) {
+        filteredData[field] = classData[field];
+      }
+    });
+    
+    const params = {
+      records: [filteredData]
+    };
+    
+    const response = await apperClient.createRecord(TABLE_NAME, params);
+    
+    if (response && response.success && response.results && response.results.length > 0) {
+      const successfulResult = response.results.find(result => result.success);
+      if (successfulResult) {
+        return successfulResult.data;
+      }
+    }
+    
+    throw new Error("Failed to create class");
+  } catch (error) {
+    console.error("Error creating class:", error);
+    throw error;
+  }
 };
 
 export const update = async (id, classData) => {
-  await delay(350);
-  const index = classes.findIndex(c => c.id === id);
-  if (index === -1) {
-    throw new Error('Class not found');
+  try {
+    const apperClient = getApperClient();
+    
+    // Filter data to only include updateable fields
+    const filteredData = { Id: id };
+    UPDATEABLE_FIELDS.forEach(field => {
+      if (classData[field] !== undefined) {
+        filteredData[field] = classData[field];
+      }
+    });
+    
+    const params = {
+      records: [filteredData]
+    };
+    
+    const response = await apperClient.updateRecord(TABLE_NAME, params);
+    
+    if (response && response.success && response.results && response.results.length > 0) {
+      const successfulResult = response.results.find(result => result.success);
+      if (successfulResult) {
+        return successfulResult.data;
+      }
+    }
+    
+    throw new Error("Failed to update class");
+  } catch (error) {
+    console.error("Error updating class:", error);
+    throw error;
   }
-  classes[index] = { ...classes[index], ...classData };
-  return { ...classes[index] };
 };
 
 export const delete_ = async (id) => {
-  await delay(250);
-  const index = classes.findIndex(c => c.id === id);
-  if (index === -1) {
-    throw new Error('Class not found');
+  try {
+    const apperClient = getApperClient();
+    const params = {
+      RecordIds: [id]
+    };
+    
+    const response = await apperClient.deleteRecord(TABLE_NAME, params);
+    
+    if (response && response.success) {
+      return true;
+    }
+    
+    throw new Error("Failed to delete class");
+  } catch (error) {
+    console.error("Error deleting class:", error);
+throw error;
   }
-  const deleted = classes.splice(index, 1)[0];
-  return { ...deleted };
 };
 
-export const delete = delete_;
+export { delete_ as delete };

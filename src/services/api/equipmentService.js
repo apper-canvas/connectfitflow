@@ -1,51 +1,152 @@
-import equipmentData from '../mockData/equipment.json';
+// Equipment service using ApperClient for database operations
+const TABLE_NAME = 'equipment';
 
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+// All fields available in the equipment table
+const ALL_FIELDS = [
+  'Id', 'Name', 'Tags', 'Owner', 'CreatedOn', 'CreatedBy', 'ModifiedOn', 'ModifiedBy',
+  'category', 'purchase_date', 'last_maintenance', 'next_maintenance', 'status', 'location', 'notes'
+];
 
-let equipment = [...equipmentData];
+// Only updateable fields (excluding System and ReadOnly fields)
+const UPDATEABLE_FIELDS = [
+  'Name', 'category', 'purchase_date', 'last_maintenance', 'next_maintenance', 'status', 'location', 'notes'
+];
 
-export const getAll = async () => {
-  await delay(350);
-  return [...equipment];
+// Initialize ApperClient
+const getApperClient = () => {
+  const { ApperClient } = window.ApperSDK;
+  return new ApperClient({
+    apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+    apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+  });
 };
 
-export const getById = async (id) => {
-  await delay(200);
-  const item = equipment.find(e => e.id === id);
-  return item ? { ...item } : null;
+export const getAll = async () => {
+  try {
+    const apperClient = getApperClient();
+    const params = {
+      fields: ALL_FIELDS,
+      orderBy: [
+        {
+          fieldName: "CreatedOn",
+          SortType: "DESC"
+        }
+      ]
+    };
+    
+    const response = await apperClient.fetchRecords(TABLE_NAME, params);
+    
+    if (!response || !response.data || response.data.length === 0) {
+      return [];
+    }
+    
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching equipment:", error);
+    throw error;
+  }
+};
+
+export const getById = async (recordId) => {
+  try {
+    const apperClient = getApperClient();
+    const params = {
+      fields: ALL_FIELDS
+    };
+    
+    const response = await apperClient.getRecordById(TABLE_NAME, recordId, params);
+    
+    if (!response || !response.data) {
+      return null;
+    }
+    
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching equipment with ID ${recordId}:`, error);
+    return null;
+  }
 };
 
 export const create = async (equipmentData) => {
-  await delay(450);
-  const newEquipment = {
-    ...equipmentData,
-    id: Date.now().toString(),
-    purchaseDate: equipmentData.purchaseDate || new Date().toISOString().split('T')[0],
-    lastMaintenance: equipmentData.lastMaintenance || new Date().toISOString().split('T')[0],
-    nextMaintenance: equipmentData.nextMaintenance || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-  };
-  equipment.push(newEquipment);
-  return { ...newEquipment };
+  try {
+    const apperClient = getApperClient();
+    
+    // Filter data to only include updateable fields
+    const filteredData = {};
+    UPDATEABLE_FIELDS.forEach(field => {
+      if (equipmentData[field] !== undefined) {
+        filteredData[field] = equipmentData[field];
+      }
+    });
+    
+    const params = {
+      records: [filteredData]
+    };
+    
+    const response = await apperClient.createRecord(TABLE_NAME, params);
+    
+    if (response && response.success && response.results && response.results.length > 0) {
+      const successfulResult = response.results.find(result => result.success);
+      if (successfulResult) {
+        return successfulResult.data;
+      }
+    }
+    
+    throw new Error("Failed to create equipment");
+  } catch (error) {
+    console.error("Error creating equipment:", error);
+    throw error;
+  }
 };
 
 export const update = async (id, equipmentData) => {
-  await delay(300);
-  const index = equipment.findIndex(e => e.id === id);
-  if (index === -1) {
-    throw new Error('Equipment not found');
+  try {
+    const apperClient = getApperClient();
+    
+    // Filter data to only include updateable fields
+    const filteredData = { Id: id };
+    UPDATEABLE_FIELDS.forEach(field => {
+      if (equipmentData[field] !== undefined) {
+        filteredData[field] = equipmentData[field];
+      }
+    });
+    
+    const params = {
+      records: [filteredData]
+    };
+    
+    const response = await apperClient.updateRecord(TABLE_NAME, params);
+    
+    if (response && response.success && response.results && response.results.length > 0) {
+      const successfulResult = response.results.find(result => result.success);
+      if (successfulResult) {
+        return successfulResult.data;
+      }
+    }
+    
+    throw new Error("Failed to update equipment");
+  } catch (error) {
+    console.error("Error updating equipment:", error);
+    throw error;
   }
-  equipment[index] = { ...equipment[index], ...equipmentData };
-  return { ...equipment[index] };
 };
 
 export const delete_ = async (id) => {
-  await delay(280);
-  const index = equipment.findIndex(e => e.id === id);
-  if (index === -1) {
-    throw new Error('Equipment not found');
+  try {
+    const apperClient = getApperClient();
+    const params = {
+      RecordIds: [id]
+    };
+    
+    const response = await apperClient.deleteRecord(TABLE_NAME, params);
+    
+    if (response && response.success) {
+      return true;
+    }
+    
+    throw new Error("Failed to delete equipment");
+  } catch (error) {
+    console.error("Error deleting equipment:", error);
+throw error;
   }
-  const deleted = equipment.splice(index, 1)[0];
-  return { ...deleted };
 };
-
-export const delete = delete_;

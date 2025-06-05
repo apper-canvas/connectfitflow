@@ -21,8 +21,20 @@ const HomePage = () => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+useEffect(() => {
+    const checkAuth = () => {
+      // Simple authentication check - can be replaced with actual auth logic
+      const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+      setIsAuthenticated(!!token);
+    };
+
+    checkAuth();
+  }, []);
 
   useEffect(() => {
+    if (!isAuthenticated) return;
+
     const loadStats = async () => {
       setLoading(true);
       try {
@@ -65,10 +77,10 @@ const HomePage = () => {
         setLoading(false);
       }
     };
+};
 
     loadStats();
-  }, []);
-
+  }, [isAuthenticated]);
   const sidebarItems = [
     { id: 'dashboard', label: 'Dashboard', icon: 'BarChart3', active: true },
     { id: 'members', label: 'Members', icon: 'Users', active: true },
@@ -141,6 +153,18 @@ const HomePage = () => {
     }
   };
 
+// Show loading spinner while checking authentication
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <Paragraph>Checking authentication...</Paragraph>
+        </div>
+      </div>
+    );
+  }
+
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -148,6 +172,12 @@ const HomePage = () => {
           <ApperIcon name="AlertTriangle" className="w-12 h-12 text-red-500 mx-auto mb-4" />
           <Heading level={2} className="text-xl mb-2">Something went wrong</Heading>
           <Paragraph>{error}</Paragraph>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark"
+          >
+            Retry
+          </button>
         </div>
       </div>
     );
