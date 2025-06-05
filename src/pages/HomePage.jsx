@@ -72,12 +72,11 @@ useEffect(() => {
           equipmentAlerts
         });
       } catch (err) {
-        setError(err.message);
+setError(err.message);
       } finally {
         setLoading(false);
       }
     };
-};
 
     loadStats();
   }, [isAuthenticated]);
